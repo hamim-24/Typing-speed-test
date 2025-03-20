@@ -219,10 +219,13 @@ void display_result(int _y, int time_delay, char u_str[], char str[], int num_ba
         }
     } while (ch != 'y');
     char name[30];
-    mvprintw(_y++, 5, "Enter your name (first name) : ");
-    scanw("%s", name);
+    do {
+        mvprintw(_y++, 5, "Enter your name (first name) : ");
+        refresh();
+        wgetnstr(stdscr, name, sizeof(name) - 1);
+    } while (strlen(name) == 0);
     FILE *fp = fopen("History.txt", "a");
-    fprintf(fp, " %s       %ds     %.2f     %.2f\n", name, time_delay, wpm, accuracy);
+    fprintf(fp, "\n %s       %ds     %.2f     %.2f", name, time_delay, wpm, accuracy);
     fclose(fp);
 
     mvprintw(_y++, 5, "Press enter to continue...");
@@ -466,7 +469,7 @@ void menu() {
 int main() {
     FILE *fp = fopen("History.txt", "r");
     if (fp == NULL) fp = fopen("History.txt", "w");
-    fprintf(fp, " NAME       TIME      WPM    ACCURACY\n");
+    fprintf(fp, " NAME       TIME      WPM    ACCURACY");
     fclose(fp);
 
     initscr();
