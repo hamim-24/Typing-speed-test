@@ -246,7 +246,7 @@ void game(char level[], int selected_option) {
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     init_pair(3, COLOR_RED, COLOR_BLACK);
     init_pair(4, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(5, COLOR_WHITE, COLOR_BLACK);
+    init_pair(5, COLOR_WHITE, COLOR_BLUE);
     init_pair(6, COLOR_BLACK, COLOR_RED);
     init_pair(7, COLOR_BLACK, COLOR_BLUE);
 
@@ -282,11 +282,11 @@ void game(char level[], int selected_option) {
             _x = x;
             _y++;
         }
-        if(str[i] == ' ') attron(COLOR_PAIR(7));
+        attron(COLOR_PAIR(7));
         refresh();
         mvprintw(_y, _x, "%c", str[i]);
         refresh();
-        if(str[i] == ' ') attroff(COLOR_PAIR(7));
+        attroff(COLOR_PAIR(7));
         i++;
         _x++;
     }
@@ -328,11 +328,11 @@ void game(char level[], int selected_option) {
                     _y--;
                     move(_y, _x);
                 } else move(_y, --_x);
-                if(str[k] == ' ') attron(COLOR_PAIR(7));
+                attron(COLOR_PAIR(7));
                 refresh();
                 printw("%c", str[k]);
                 refresh();
-                if(str[k] == ' ') attroff(COLOR_PAIR(7));
+                attroff(COLOR_PAIR(7));
                 num_backspace++;
             }
         }
