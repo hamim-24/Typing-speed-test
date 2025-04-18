@@ -1,6 +1,0 @@
- NAME       TIME      WPM    ACCURACY
- à5       0s     nan     nan
- `E       0s     nan     nan
- `E       0s     nan     nan
- ham       4s     15.00     100.00
- hamim       19s     18.95     100.00
