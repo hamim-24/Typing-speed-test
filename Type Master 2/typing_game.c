@@ -229,61 +229,74 @@ void display_result(int _y, int time_delay, char u_str[], char str[], int num_ba
 }
 
 void game(char level[], int selected_option) {
+    // Clear the screen and refresh the display
     clear();
     refresh();
-    int x, y;
-    char u_str[MAX_STR_SIZE];
-    char str[MAX_STR_SIZE];
-    random_word_generate(str, selected_option);
 
+    // Initialize variables for screen dimensions and strings
+    int x, y;
+    char u_str[MAX_STR_SIZE]; // User input string
+    char str[MAX_STR_SIZE];  // Randomly generated string
+    random_word_generate(str, selected_option); // Generate random words based on difficulty
+
+    // Initialize color pairs for ncurses
     start_color();
     init_pair(1, COLOR_BLUE, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     init_pair(3, COLOR_RED, COLOR_BLACK);
     init_pair(4, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(5, COLOR_WHITE, COLOR_BLACK);
+    init_pair(5, COLOR_WHITE, COLOR_BLUE);
     init_pair(6, COLOR_BLACK, COLOR_RED);
+    init_pair(7, COLOR_BLACK, COLOR_BLUE);
 
+    // Calculate the length of the difficulty level string
     int len = 0;
-    while (level[len++] != ' ') ; // counting length without ' '
+    while (level[len++] != ' ');
 
-    getmaxyx(stdscr, y, x); // moving cursor in the middle
+    // Center the difficulty level text on the screen
+    getmaxyx(stdscr, y, x);
     x = (x - len) / 2 - 18;
     y = y / 2 - 12;
     mvprintw(y - 5, x, "======= Difficulty level : ");
     attron(A_BOLD);
-    for (int i = 0; i < len; i++) printw("%c", level[i]); // printing without ' '
-
+    for (int i = 0; i < len; i++) printw("%c", level[i]);
     attroff(A_BOLD);
-    printw(" =======");
+    printw("=======");
 
+    // Display instructions for the user
     attron(COLOR_PAIR(1) | A_BOLD);
     mvprintw(y - 2, x - 9, "Press 'ENTER' to start, 'ESC' to end and 'TAB' to restart.");
     attroff(COLOR_PAIR(1) | A_BOLD);
     refresh();
 
+    // Wait for the user to press 'ENTER' to start
     noecho();
-    while ((getch()) != 10) ; // force to press enter
+    while ((getch()) != 10);
     echo();
 
+    // Initialize variables for displaying the random string
     int i = 0, _x, _y;
-    getmaxyx(stdscr, y, x);// finding the center
+    getmaxyx(stdscr, y, x);
     _x = x = x / 5;
     _y = y = y / 2 - 10;
 
-    //the text will be in the 1/5 to 4/5 of total screen
+    // Display the random string on the screen
     while (str[i]) {
-        if (_x > x * 4) { // if cursor moved out of 4/5 of the middle, reset to 1/5
+        if (_x > x * 4) {
             _x = x;
             _y++;
         }
+        attron(COLOR_PAIR(7));
         refresh();
-        mvprintw(_y, _x, "%c", str[i++]);
+        mvprintw(_y, _x, "%c", str[i]);
         refresh();
+        attroff(COLOR_PAIR(7));
+        i++;
         _x++;
     }
     refresh();
 
+    // Initialize variables for user input and timing
     getmaxyx(stdscr, y, x);
     _x = x = x / 5;
     _y = y = y / 2 - 10;
@@ -296,14 +309,16 @@ void game(char level[], int selected_option) {
     char ch;
     start_time = time(NULL);
     keypad(stdscr, TRUE);
+
+    // Main loop for user input
     do {
-        timer(x, y - 2, TOTAL_TIME - time_delay); // showing time
-        if (time_delay == TOTAL_TIME) { // when time is finished loop will terminate
+        // Display the remaining time
+        timer(x, y - 2, TOTAL_TIME - time_delay);
+        if (time_delay >= TOTAL_TIME) {
             nodelay(stdscr, TRUE);
             break;
         }
         move(_y, _x);
-        //the text will be in the 1/5 to 4/5 of total screen
         if (_x > x * 4) {
             _x = x;
             _y++;
@@ -311,65 +326,77 @@ void game(char level[], int selected_option) {
         } 
         refresh();
         ch = getch();
-        if (ch == 127 || ch == '\b') { // pressing backspace
+
+        // Handle backspace
+        if (ch == 127 || ch == '\b') {
             if (k > 0) {
                 printw("\b \b");
                 k--;
                 u_str[k] = '\0';
-                if (_x < x + 1) { // if cursor moved before 1/5 of the middle, reset to 4/5 of the upper line
+                if (_x < x + 1) {
                     _x = x * 4;
                     _y--;
                     move(_y, _x);
                 } else move(_y, --_x);
-                printw("%c", str[k]);// print the text from file
+                attron(COLOR_PAIR(7));
                 refresh();
+                printw("%c", str[k]);
+                refresh();
+                attroff(COLOR_PAIR(7));
                 num_backspace++;
             }
         }
-        else if (ch == 9) game(level, selected_option); // pressing TAB recall game function
-        else if (ch == 27) break; // press ENTER for ending
-        else if ((ch < 65 || (ch > 90 && ch < 97) || ch > 122) && ch != ' ') ; //only small letter, capital letters, esc, tab && enter is not allowed after starting
+        // Handle 'TAB' key to restart the game
+        else if (ch == 9) game(level, selected_option);
+        // Handle 'ESC' key to exit the game
+        else if (ch == 27) break;
+        // Ignore invalid characters
+        else if ((ch < 65 || (ch > 90 && ch < 97) || ch > 122) && ch != ' ') ;
+        // Handle correct character input
         else if (ch == str[k]) {
             u_str[k] = ch;
             k++;
             attron(COLOR_PAIR(2) | A_BOLD);
-            printw("%c", ch); // print green color
-            refresh();
+            printw("%c", ch);
             attroff(COLOR_PAIR(2) | A_BOLD);
-            move(_y, ++_x); // cursor moving to next index
+            refresh();
+            move(_y, ++_x);
         }
-        else { // if didn't match
-            int x = (str[k] == ' ') ? 6 : 3; // wrong character on space will change the bkgd into red 
+        // Handle incorrect character input
+        else {
+            int x = (str[k] == ' ') ? 6 : 3;
             attron(COLOR_PAIR(x) | A_BOLD);
             printw("%c", str[k]);
             attroff(COLOR_PAIR(x) | A_BOLD);
             u_str[k] = ch;
             k++;
             refresh();
-            move(_y, ++_x); // cursor moving to next index
+            move(_y, ++_x);
         }
         end_time = time(NULL);
         refresh();
         time_delay = difftime(end_time, start_time);
     } while (k < strlen(str));
+
+    // Reset input settings
     keypad(stdscr, FALSE);
     echo();
     nodelay(stdscr, FALSE);
-    u_str[k] = '\0'; // null termination
+    u_str[k] = '\0';
     refresh();
 
+    // Display the result
     _y = _y + 15;
-
     mvprintw(_y, 5, "Press enter for result");
 
     noecho();
-    while (getch() != 10) ; // force to press enter
+    while (getch() != 10);
     echo();
+    refresh();
 
-    display_result(_y, time_delay, u_str, str, num_backspace); // showing the result
-    menu();
+    display_result(_y, time_delay, u_str, str, num_backspace);
+    menu(); // Return to the menu
 }
-
 //function to show menu
 void menu() {
     char *option[] = {
